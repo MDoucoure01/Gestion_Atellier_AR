@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\CategorieController;
 use App\Http\Controllers\fournisseurController;
+use App\Http\Controllers\VenteArticleController;
 
 /*
 |--------------------------------------------------------------------------
@@ -35,3 +36,12 @@ Route::apiResource('article',ArticleController::class)->only(['index','store','d
 Route::post('/fournisseur/recherche',[fournisseurController::class,"rechercherFournisseur"]);
 
 Route::post('article/modifier',[ArticleController::class,"update"]);
+
+
+// Nouveau
+
+Route::get('articles/search/{search}', [ArticleController::class, 'search']);
+
+Route::apiResource('artVente', VenteArticleController::class)->only(['index','store','update']);
+Route::delete('articles/supp/{id}', [VenteArticleController::class,'destroy']);
+Route::post('artVente/modifier', [VenteArticleController::class,'update']);

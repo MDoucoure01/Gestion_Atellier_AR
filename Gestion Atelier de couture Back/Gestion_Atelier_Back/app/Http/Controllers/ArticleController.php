@@ -142,4 +142,16 @@ class ArticleController extends Controller
             ];
         }
     }
+
+    public function search($art)
+    {
+        $articles = Article::where('libelle', 'LIKE', "$art%")->get();
+        $libAndStock = $articles->map(function ($article) {
+            return [
+                'libelle' => $article->libelle,
+                'stock' => $article->stock,
+            ];
+        });
+        return $libAndStock;
+    }
 }
