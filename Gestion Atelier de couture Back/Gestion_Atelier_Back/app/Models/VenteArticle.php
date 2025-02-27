@@ -13,6 +13,22 @@ class VenteArticle extends Model
         "id"
     ];
 
+    // protected static function boot()
+    // {
+    //     // parent::boot();
+
+    //     // static::created(function ($articleVente) {
+    //     //     foreach ($articleVente->confectionArticles as $confectionItem) {
+    //     //         $article = Article::where('libelle', $confectionItem['id'])->first();
+
+    //     //         if ($article) {
+    //     //             $articleVente->articles()->attach($article->id, ['quantity' => $confectionItem['qte']]);
+    //     //         }
+    //     //     }
+    //     // });
+    // }
+
+
     public function article()
     {
         return $this->belongsToMany(Article::class, 'vente_articles', 'article_id', 'article_vente_id');

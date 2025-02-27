@@ -8,8 +8,10 @@ use App\Models\ArticleVente;
 use App\Models\VenteArticle;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Http\Resources\CategorieResource;
 use App\Http\Resources\VenteArticleResource;
 use App\Http\Requests\StoreArticleVenteRequest;
+use App\Http\Resources\ArticleVenteArticleResource;
 
 class VenteArticleController extends Controller
 {
@@ -18,12 +20,16 @@ class VenteArticleController extends Controller
      */
     public function index()
     {
-        $articles = ArticleVente::paginate(2);
+        $articles = ArticleVente::all();
+        $categorie = Categorie::all();
+        $article = Article::all();
         return response()->json([
             "message" => "Tous les articles de ventes",
             'data'=>
             [
-                'articlesVentes' => $articles
+                'articlesVentes' => VenteArticleResource::collection($articles),
+                'categorie' => CategorieResource::collection($categorie),
+                'article_confection' => ArticleVenteArticleResource::collection($article)
             ]
         ]);
     }
@@ -48,37 +54,12 @@ class VenteArticleController extends Controller
 
             $reference = "REF-" . substr($request->libelle, 0, 3) . "-" . str_replace(' ', '', $categorie->libelle) . "-" . $numOrdre;
             $cout = 0;
-            foreach ($request->article as $key) {
-                $article = Article::where('id', $key['id'])->first();
-                $cout += ($article->prix * $key['quantity']);
+
+            foreach ($request->confectionArticles as $key) {
+                $article = Article::where('libelle', $key['id'])->first();
+                $cout += ($article->prix * $key['qte']);
             }
             $prix = $cout+$request->marge;
-
-            if ($request->promo) {
-                $article = ArticleVente::create([
-                    "libelle" => $request->libelle,
-                    "categorie_id" => $request->categorie_id,
-                    "ref" => $reference,
-                    "cout" => $cout,
-                    "prix_vente" => $prix,
-                    "marge" => $request->marge,
-                    "qteStock" => 10,
-                    "promo" => $request->promo
-                ]);
-
-                foreach ($request->article as $key) {
-                    $association = VenteArticle::create([
-                        "qte" =>$key['quantity'],
-                        "article_id" => $key['id'],
-                        "article_vente_id" => $article->id,
-                    ]);
-                }
-
-                return [
-                    "message" => "enregistrement effectuer",
-                    "data" => new VenteArticleResource($article)
-                ];
-            }
 
             $article = ArticleVente::create([
                 "libelle" => $request->libelle,
@@ -88,12 +69,14 @@ class VenteArticleController extends Controller
                 "prix_vente" => $prix,
                 "marge" => $request->marge,
                 "qteStock" => 10,
+                "promo" => $request->promo
             ]);
 
-            foreach ($request->article as $key) {
+            foreach ($request->confectionArticles as $key) {
+                $articleCon = Article::where('libelle', $key['id'])->first();
                 $association = VenteArticle::create([
-                    "qte" =>$key['quantity'],
-                    "article_id" => $key['id'],
+                    "qte" =>$key['qte'],
+                    "article_id" => $articleCon->id,
                     "article_vente_id" => $article->id,
                 ]);
             }
@@ -102,6 +85,7 @@ class VenteArticleController extends Controller
                 "message" => "enregistrement effectuer",
                 "data" => new VenteArticleResource($article)
             ];
+
         });
     }
 
@@ -155,17 +139,16 @@ class VenteArticleController extends Controller
     public function destroy(Request $request)
     {
         return DB::transaction(function () use ($request) {
-            $article = VenteArticle::findOrFail($request->id);
-            $article->article()->detach();
+            DB::table('vente_articles')->where('article_vente_id', $request->id)->delete();
+
+            $article = ArticleVente::findOrFail($request->id);
             $article->delete();
 
-            return response()->json(
-
-                [
-                    'message' => 'Article supprimé avec succès',
-                    'data'=>$article,
-                    'status' => 200
-                ]);
+            return response()->json([
+                'message' => 'Article supprimé avec succès',
+                'status' => 200
+            ]);
         });
     }
+
 }

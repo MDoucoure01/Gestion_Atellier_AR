@@ -19,7 +19,8 @@ class VenteArticleResource extends JsonResource
 
                 "id" => $this->id,
                 "libelle" => $this->libelle,
-                "categorie_id" => $this->categorie,
+                "categorie_id" => $this->categorie_id,
+                "categorie" => $this->categorie,
                 "reference" => $this->ref,
                 "marge" => $this->marge,
                 "promo" => $this->promo,
@@ -27,6 +28,8 @@ class VenteArticleResource extends JsonResource
                 "stock" => $this->stock,
                 "photo" => $this->photo,
                 "qteStock" => $this->qteStock,
+                "cout" => $this->cout,
+                "prix_vente" => $this->prix_vente,
                 // "article" => ArticleConfectionResource::collection($this->articlesConfection)
 
 
